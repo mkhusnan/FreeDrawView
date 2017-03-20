@@ -2,6 +2,7 @@ package com.rm.freedrawsample;
 
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,6 +17,13 @@ import com.rm.freedrawview.FreeDrawView;
 import com.rm.freedrawview.PathDrawnListener;
 import com.rm.freedrawview.PathRedoUndoCountChangeListener;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class ActivityDraw extends AppCompatActivity
         implements View.OnClickListener, SeekBar.OnSeekBarChangeListener,
         PathRedoUndoCountChangeListener, FreeDrawView.DrawCreatorListener, PathDrawnListener {
@@ -27,6 +35,7 @@ public class ActivityDraw extends AppCompatActivity
     private static final int ALPHA_STEP = 1;
     private static final int ALPHA_MAX = 255;
     private static final int ALPHA_MIN = 0;
+    private static final String TAG = "ActivityDraw";
 
     private FreeDrawView mFreeDrawView;
     private View mSideView;
@@ -175,7 +184,7 @@ public class ActivityDraw extends AppCompatActivity
 
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         } else {
-            super.onBackPressed();
+            moveTaskToBack(true);
         }
     }
 
@@ -213,10 +222,35 @@ public class ActivityDraw extends AppCompatActivity
         mImgScreen.setVisibility(View.VISIBLE);
 
         mImgScreen.setImageBitmap(draw);
+
+        savebitmap(draw);
     }
 
     @Override
     public void onDrawCreationError() {
         Toast.makeText(this, "Error, cannot create bitmap", Toast.LENGTH_SHORT).show();
+    }
+
+    public void savebitmap(Bitmap bmp){
+        try{
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            bmp.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+            String timeStamp = new SimpleDateFormat("ddMMyy_HHmmss").format(new Date());
+            String mImageName="coratcoret_"+ timeStamp +".jpg";
+            String storagePath = Environment.getExternalStorageDirectory() + "/coratcoret";
+            File sdStorageDir = new File(storagePath);
+            sdStorageDir.mkdirs();
+            File f = new File(Environment.getExternalStorageDirectory()
+                    + "/coratcoret"
+                    + File.separator + mImageName);
+
+            f.createNewFile();
+            FileOutputStream fo = new FileOutputStream(f);
+            fo.write(bytes.toByteArray());
+            fo.close();
+            Toast.makeText(this, "Your image sucsessfully saved to:\n"+storagePath+"/"+mImageName, Toast.LENGTH_LONG).show();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
